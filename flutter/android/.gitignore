@@ -1,0 +1,18 @@
+gradle-wrapper.jar
+/.gradle
+/captures/
+/gradlew
+/gradlew.bat
+/local.properties
+GeneratedPluginRegistrant.java
+.cxx/
+
+# Never publish signing material. The release keystore is supplied by CI through
+# HELIX_KEYSTORE_PROPERTIES (or an untracked android/key.properties).
+# See https://flutter.dev/to/reference-keystore
+key.properties
+**/*.keystore
+**/*.jks
+**/*.p12
+**/*.pfx
+**/*.pem
