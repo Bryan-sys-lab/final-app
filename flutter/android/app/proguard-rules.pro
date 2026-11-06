@@ -33,3 +33,8 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn javax.annotation.**
+
+# Play Core (deferred components / split install) — referenced reflectively by
+# the Flutter embedding; keep so R8 does not strip them.
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
