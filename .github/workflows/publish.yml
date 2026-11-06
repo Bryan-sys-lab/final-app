@@ -1,0 +1,26 @@
+name: Publish to Nerva
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Helix release to Nerva
+        env:
+          CI_TOKEN: ${{ secrets.NERVA_CI_TOKEN }}
+        run: |
+          curl -fSs -X POST https://nerva.brianbmk332.workers.dev/api/releases \
+            -H "x-ci-token: $CI_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"id\": \"helix\",
+              \"version\": {
+                \"version\": \"${{ github.ref_name }}\",
+                \"url\": \"https://github.com/Bryan-sys-lab/final-app/releases/download/${{ github.ref_name }}/app-debug.apk\",
+                \"channel\": \"beta\"
+              }
+            }"

@@ -265,8 +265,28 @@ jobs:
           git tag "v$VERSION" || true
           git push origin "v$VERSION" || true
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Build demo APK for release
+        run: |
+          cd flutter
+          flutter pub get
+          flutter build apk --debug --dart-define=DEMO_MODE=true
+          cp build/app/outputs/flutter-apk/app-debug.apk /tmp/helix-demo.apk
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
+        with:
+          files: /tmp/helix-demo.apk
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Helix v${{ steps.version.outputs.version }}
