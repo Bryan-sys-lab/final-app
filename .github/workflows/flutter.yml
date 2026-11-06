@@ -132,6 +132,13 @@ jobs:
       # The tile source. The OpenStreetMap public tiles are the default and
       # need no key; a deployment with its own provider sets this.
       HELIX_MAP_TILE_URL: ${{ secrets.HELIX_MAP_TILE_URL || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' }}
+      HELIX_KEYSTORE_BASE64: ${{ secrets.HELIX_KEYSTORE_BASE64 }}
+      HELIX_KEYSTORE_PASSWORD: ${{ secrets.HELIX_KEYSTORE_PASSWORD }}
+      HELIX_KEY_ALIAS: ${{ secrets.HELIX_KEY_ALIAS }}
+      HELIX_KEY_PASSWORD: ${{ secrets.HELIX_KEY_PASSWORD }}
+      HELIX_PINNED_CERT_SHA256: ${{ secrets.HELIX_PINNED_CERT_SHA256 }}
+      HELIX_API_CA_PEM: ${{ secrets.HELIX_API_CA_PEM }}
+      HELIX_RELEASE_CERT_SHA256: ${{ secrets.HELIX_RELEASE_CERT_SHA256 }}
     steps:
       - uses: actions/checkout@v4
 
