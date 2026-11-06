@@ -290,3 +290,19 @@ jobs:
           name: Helix v${{ steps.version.outputs.version }}
           generate_release_notes: true
           files: /tmp/helix-demo.apk
+
+      - name: Publish to Nerva
+        env:
+          CI_TOKEN: ${{ secrets.NERVA_CI_TOKEN }}
+        run: |
+          curl -fSs -X POST https://nerva.brianbmk332.workers.dev/api/releases \
+            -H "x-ci-token: $CI_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"id\": \"helix\",
+              \"version\": {
+                \"version\": \"${{ steps.version.outputs.version }}\",
+                \"url\": \"https://github.com/Bryan-sys-lab/final-app/releases/download/v${{ steps.version.outputs.version }}/app-debug.apk\",
+                \"channel\": \"beta\"
+              }
+            }" || true
