@@ -324,15 +324,19 @@ jobs:
       - name: Publish to Nerva
         env:
           CI_TOKEN: ${{ secrets.NERVA_CI_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          curl -fSs -X POST https://nerva.brianbmk332.workers.dev/api/releases \
-            -H "x-ci-token: $CI_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \\"id\\": \\"helix\\",
-              \\"version\\": {
-                \\"version\\": \\"${{ steps.version.outputs.version }}\\",
-                \\"url\\": \\"https://github.com/Bryan-sys-lab/final-app/releases/download/v${{ steps.version.outputs.version }}/helix-release.apk\\",
-                \\"channel\\": \\"beta\\"
-              }
-            }" || true
+          python3 - <<'PYEOF'
+          import json, os, urllib.request
+          version = os.environ["VERSION"]
+          url = f"https://github.com/Bryan-sys-lab/final-app/releases/download/v{version}/helix-release.apk"
+          payload = {"id": "helix", "version": {"version": version, "url": url, "channel": "beta"}}
+          data = json.dumps(payload).encode()
+          req = urllib.request.Request(
+              "https://nerva.brianbmk332.workers.dev/api/releases",
+              data=data,
+              headers={"x-ci-token": os.environ["CI_TOKEN"], "Content-Type": "application/json"},
+          )
+          with urllib.request.urlopen(req) as resp:
+              print(resp.read().decode())
+          PYEOF
