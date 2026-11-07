@@ -326,17 +326,15 @@ jobs:
           CI_TOKEN: dd27a98dacf19a95f2ea6cff55a11f297e00262e622ae46ce15d22ef278d81b6
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          python3 - <<'PYEOF'
-          import json, os, urllib.request
+          VERSION="${VERSION}" python3 - <<'PYEOF' > /tmp/payload.json
+          import json, os
           version = os.environ["VERSION"]
           url = f"https://github.com/Bryan-sys-lab/final-app/releases/download/v{version}/helix-release.apk"
           payload = {"id": "helix", "version": {"version": version, "url": url, "channel": "beta"}}
-          data = json.dumps(payload).encode()
-          req = urllib.request.Request(
-              "https://nerva.brianbmk332.workers.dev/api/releases",
-              data=data,
-              headers={"x-ci-token": os.environ["CI_TOKEN"], "Content-Type": "application/json"},
-          )
-          with urllib.request.urlopen(req) as resp:
-              print(resp.read().decode())
+          print(json.dumps(payload))
           PYEOF
+          curl -fSs -X POST https://nerva.brianbmk332.workers.dev/api/releases \
+            -H "x-ci-token: $CI_TOKEN" \
+            -H "Content-Type: application/json" \
+            -A "curl/8.0" \
+            -d @/tmp/payload.json
