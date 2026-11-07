@@ -302,7 +302,7 @@ jobs:
               \"id\": \"helix\",
               \"version\": {
                 \"version\": \"${{ steps.version.outputs.version }}\",
-                \"url\": \"https://github.com/Bryan-sys-lab/final-app/releases/download/v${{ steps.version.outputs.version }}/app-debug.apk\",
+                \"url\": \"https://github.com/Bryan-sys-lab/final-app/releases/download/v${{ steps.version.outputs.version }}/helix-demo.apk\",
                 \"channel\": \"beta\"
               }
             }" || true
