@@ -107,6 +107,25 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
+      - name: Assemble the signing material
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/helix-signing"
+          printf '%s' "$HELIX_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/helix-signing/helix-release.p12"
+          cat > "$RUNNER_TEMP/helix-signing/key.properties" <<EOF
+          storeFile=helix-release.p12
+          storePassword=$HELIX_KEYSTORE_PASSWORD
+          keyAlias=$HELIX_KEY_ALIAS
+          keyPassword=$HELIX_KEY_PASSWORD
+          EOF
+          echo "HELIX_KEYSTORE_PROPERTIES=$RUNNER_TEMP/helix-signing/key.properties" >> "$GITHUB_ENV"
+
+      - name: Install the pinned CA
+        run: |
+          set -euo pipefail
+          mkdir -p assets/pins
+          printf '%s' "$HELIX_API_CA_PEM" > assets/pins/api-ca.pem
+
       - name: Build demo APK (signed, in-process mock backend)
         run: |
           flutter build apk --release \
