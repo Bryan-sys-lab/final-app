@@ -323,7 +323,7 @@ jobs:
 
       - name: Publish to Nerva
         env:
-          CI_TOKEN: ${{ secrets.NERVA_CI_TOKEN }}
+          CI_TOKEN: dd27a98dacf19a95f2ea6cff55a11f297e00262e622ae46ce15d22ef278d81b6
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           python3 - <<'PYEOF'
