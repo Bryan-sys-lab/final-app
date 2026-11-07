@@ -322,7 +322,7 @@ jobs:
           cd flutter
           flutter pub get
           flutter build apk --debug --dart-define=DEMO_MODE=true
-          cp build/app/outputs/flutter-apk/app-release.apk /tmp/helix-release.apk
+          cp build/app/outputs/flutter-apk/app-debug.apk /tmp/helix-release.apk
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
