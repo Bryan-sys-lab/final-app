@@ -1,0 +1,109 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'dev.flutter.flutter-gradle-plugin'
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { is -> localProperties.load(is) }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutterVersionCode')?.toInteger() ?: 1
+def flutterVersionName = localProperties.getProperty('flutterVersionName') ?: '1.0.0'
+
+// Release signing material never lives in the repo. HELIX_KEYSTORE_PROPERTIES points at a
+// key.properties file supplied by CI; otherwise android/key.properties is read from disk
+// (it is git-ignored). Relative storeFile paths resolve against the key.properties folder.
+def keyPropertiesPath = System.getenv('HELIX_KEYSTORE_PROPERTIES')
+def keyPropertiesFile = keyPropertiesPath
+        ? rootProject.file(keyPropertiesPath)
+        : rootProject.file('key.properties')
+def keyProperties = new Properties()
+if (keyPropertiesFile.exists()) {
+    keyPropertiesFile.withInputStream { is -> keyProperties.load(is) }
+}
+def releaseKeystoreReady = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword']
+        .every { keyProperties.containsKey(it) }
+
+// A release build without signing material must fail loudly instead of falling back to
+// the public AOSP debug key.
+def appProject = project
+def releaseBuildRequested = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+if (releaseBuildRequested && !releaseKeystoreReady) {
+    throw new GradleException("Missing android/key.properties — release signing is not configured")
+}
+gradle.taskGraph.whenReady { graph ->
+    def releaseTask = graph.allTasks.any {
+        it.project == appProject && it.name.toLowerCase().contains('release')
+    }
+    if (releaseTask && !releaseKeystoreReady) {
+        throw new GradleException("Missing android/key.properties — release signing is not configured")
+    }
+}
+
+android {
+    namespace 'com.helix.helix'
+    compileSdk 36
+    ndkVersion '28.2.13676358'
+
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        applicationId 'com.helix.helix'
+        minSdkVersion flutter.minSdkVersion
+        targetSdk 36
+        versionCode flutterVersionCode
+        versionName flutterVersionName
+    }
+    signingConfigs {
+        if (releaseKeystoreReady) {
+            release {
+                def storeFilePath = keyProperties['storeFile']
+                storeFile new File(storeFilePath).isAbsolute()
+                        ? new File(storeFilePath)
+                        : new File(keyPropertiesFile.parentFile, storeFilePath)
+                storePassword keyProperties['storePassword']
+                keyAlias keyProperties['keyAlias']
+                keyPassword keyProperties['keyPassword']
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (releaseKeystoreReady) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.20'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.annotation:annotation:1.7.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.2'
+    implementation 'androidx.activity:activity:1.9.0'
+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+}
+
+flutter {
+    source '../..'
+}
