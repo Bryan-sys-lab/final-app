@@ -87,8 +87,18 @@ android {
             if (releaseKeystoreReady) {
                 signingConfig signingConfigs.release
             }
+<<<<<<< HEAD
             minifyEnabled true
             shrinkResources true
+=======
+<<<<<<< HEAD
+            minifyEnabled false
+            shrinkResources false
+=======
+            minifyEnabled true
+            shrinkResources true
+>>>>>>> b798013 (Update: remove root/jailbreak guards + demo credentials)
+>>>>>>> 683e824 (fix: resolve merge conflict in flutter.yml (keep secrets env blocks))
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

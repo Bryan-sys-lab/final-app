@@ -90,6 +90,14 @@ jobs:
     defaults:
       run:
         working-directory: flutter
+    env:
+      HELIX_KEYSTORE_BASE64: ${{ secrets.HELIX_KEYSTORE_BASE64 }}
+      HELIX_KEYSTORE_PASSWORD: ${{ secrets.HELIX_KEYSTORE_PASSWORD }}
+      HELIX_KEY_ALIAS: ${{ secrets.HELIX_KEY_ALIAS }}
+      HELIX_KEY_PASSWORD: ${{ secrets.HELIX_KEY_PASSWORD }}
+      HELIX_PINNED_CERT_SHA256: ${{ secrets.HELIX_PINNED_CERT_SHA256 }}
+      HELIX_API_CA_PEM: ${{ secrets.HELIX_API_CA_PEM }}
+      HELIX_MAP_TILE_URL: ${{ secrets.HELIX_MAP_TILE_URL || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -107,15 +115,39 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
-      - name: Build demo APK (in-process mock backend)
+      - name: Assemble the signing material
         run: |
-          flutter build apk --debug             --dart-define=DEMO_MODE=true
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/helix-signing"
+          printf '%s' "$HELIX_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/helix-signing/helix-release.p12"
+          cat > "$RUNNER_TEMP/helix-signing/key.properties" <<EOF
+          storeFile=helix-release.p12
+          storePassword=$HELIX_KEYSTORE_PASSWORD
+          keyAlias=$HELIX_KEY_ALIAS
+          keyPassword=$HELIX_KEY_PASSWORD
+          EOF
+          echo "HELIX_KEYSTORE_PROPERTIES=$RUNNER_TEMP/helix-signing/key.properties" >> "$GITHUB_ENV"
+
+      - name: Install the pinned CA
+        run: |
+          set -euo pipefail
+          mkdir -p assets/pins
+          printf '%s' "$HELIX_API_CA_PEM" > assets/pins/api-ca.pem
+
+      - name: Build demo APK (signed, in-process mock backend)
+        run: |
+          flutter build apk --release \
+            --dart-define=DEMO_MODE=true \
+            --dart-define=PINNED_CERT_SHA256="$HELIX_PINNED_CERT_SHA256" \
+            --dart-define=REQUIRE_PINNING=true \
+            --dart-define=MAP_TILE_URL="$HELIX_MAP_TILE_URL"
+          cp build/app/outputs/flutter-apk/app-release.apk /tmp/helix-demo.apk
 
       - name: Upload demo APK
         uses: actions/upload-artifact@v4
         with:
           name: helix-android-demo-apk
-          path: flutter/build/app/outputs/flutter-apk/*.apk
+          path: /tmp/helix-demo.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -132,6 +164,13 @@ jobs:
       # The tile source. The OpenStreetMap public tiles are the default and
       # need no key; a deployment with its own provider sets this.
       HELIX_MAP_TILE_URL: ${{ secrets.HELIX_MAP_TILE_URL || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' }}
+      HELIX_KEYSTORE_BASE64: ${{ secrets.HELIX_KEYSTORE_BASE64 }}
+      HELIX_KEYSTORE_PASSWORD: ${{ secrets.HELIX_KEYSTORE_PASSWORD }}
+      HELIX_KEY_ALIAS: ${{ secrets.HELIX_KEY_ALIAS }}
+      HELIX_KEY_PASSWORD: ${{ secrets.HELIX_KEY_PASSWORD }}
+      HELIX_PINNED_CERT_SHA256: ${{ secrets.HELIX_PINNED_CERT_SHA256 }}
+      HELIX_API_CA_PEM: ${{ secrets.HELIX_API_CA_PEM }}
+      HELIX_RELEASE_CERT_SHA256: ${{ secrets.HELIX_RELEASE_CERT_SHA256 }}
     steps:
       - uses: actions/checkout@v4
 
