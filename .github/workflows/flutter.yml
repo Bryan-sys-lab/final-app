@@ -107,15 +107,20 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
-      - name: Build demo APK (in-process mock backend)
+      - name: Build demo APK (signed, in-process mock backend)
         run: |
-          flutter build apk --debug             --dart-define=DEMO_MODE=true
+          flutter build apk --release \
+            --dart-define=DEMO_MODE=true \
+            --dart-define=PINNED_CERT_SHA256="$HELIX_PINNED_CERT_SHA256" \
+            --dart-define=REQUIRE_PINNING=true \
+            --dart-define=MAP_TILE_URL="$HELIX_MAP_TILE_URL"
+          cp build/app/outputs/flutter-apk/app-release.apk /tmp/helix-demo.apk
 
       - name: Upload demo APK
         uses: actions/upload-artifact@v4
         with:
           name: helix-android-demo-apk
-          path: flutter/build/app/outputs/flutter-apk/*.apk
+          path: /tmp/helix-demo.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -197,6 +202,15 @@ jobs:
             --dart-define=PINNED_CERT_SHA256="$HELIX_PINNED_CERT_SHA256" \
             --dart-define=REQUIRE_PINNING=true \
             --dart-define=MAP_TILE_URL="$HELIX_MAP_TILE_URL"
+
+      - name: Build the signed APK
+        run: |
+          flutter build apk --release \
+            --dart-define=DEMO_MODE=true \
+            --dart-define=PINNED_CERT_SHA256="$HELIX_PINNED_CERT_SHA256" \
+            --dart-define=REQUIRE_PINNING=true \
+            --dart-define=MAP_TILE_URL="$HELIX_MAP_TILE_URL"
+          cp build/app/outputs/flutter-apk/app-release.apk /tmp/helix-release.apk
 
       - name: Verify the signature
         run: |
@@ -281,7 +295,7 @@ jobs:
           cd flutter
           flutter pub get
           flutter build apk --debug --dart-define=DEMO_MODE=true
-          cp build/app/outputs/flutter-apk/app-debug.apk /tmp/helix-demo.apk
+          cp build/app/outputs/flutter-apk/app-release.apk /tmp/helix-release.apk
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
@@ -289,7 +303,7 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Helix v${{ steps.version.outputs.version }}
           generate_release_notes: true
-          files: /tmp/helix-demo.apk
+          files: /tmp/helix-release.apk
 
       - name: Publish to Nerva
         env:
