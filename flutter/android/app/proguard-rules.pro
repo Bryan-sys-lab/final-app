@@ -33,14 +33,8 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn javax.annotation.**
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
 
 # Play Core (deferred components / split install) — referenced reflectively by
 # the Flutter embedding; keep so R8 does not strip them.
 -keep class com.google.android.play.core.** { *; }
 -dontwarn com.google.android.play.core.**
-=======
->>>>>>> b798013 (Update: remove root/jailbreak guards + demo credentials)
->>>>>>> 683e824 (fix: resolve merge conflict in flutter.yml (keep secrets env blocks))

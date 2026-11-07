@@ -3,7 +3,6 @@ import 'package:helix/core/security.dart';
 import 'package:helix/core/deep_links.dart';
 
 void main() {
-<<<<<<< HEAD
   test('release builds no longer block rooted or jailbroken devices', () {
     expect(securityVerdict(rooted: true, hooked: false, debuggerAttached: false, releaseBuild: true, requirePinning: false).secure, isTrue);
     expect(securityVerdict(rooted: false, hooked: true, debuggerAttached: false, releaseBuild: true, requirePinning: false).secure, isTrue);
@@ -11,26 +10,6 @@ void main() {
   });
 
   test('debug builds tolerate root and pinning fails closed when required', () {
-=======
-<<<<<<< HEAD
-  test('release builds fail closed on root/hook/debug', () {
-    expect(securityVerdict(rooted: true, hooked: false, debuggerAttached: false, releaseBuild: true).secure, isFalse);
-    expect(securityVerdict(rooted: true, hooked: false, debuggerAttached: false, releaseBuild: true).reason, SecurityReason.rooted);
-    expect(securityVerdict(rooted: false, hooked: true, debuggerAttached: false, releaseBuild: true).reason, SecurityReason.hooked);
-    expect(securityVerdict(rooted: false, hooked: false, debuggerAttached: true, releaseBuild: true).reason, SecurityReason.debugger);
-  });
-
-  test('debug builds tolerate root but pinning still fails closed', () {
-=======
-  test('release builds no longer block rooted or jailbroken devices', () {
-    expect(securityVerdict(rooted: true, hooked: false, debuggerAttached: false, releaseBuild: true, requirePinning: false).secure, isTrue);
-    expect(securityVerdict(rooted: false, hooked: true, debuggerAttached: false, releaseBuild: true, requirePinning: false).secure, isTrue);
-    expect(securityVerdict(rooted: false, hooked: false, debuggerAttached: true, releaseBuild: true, requirePinning: false).secure, isTrue);
-  });
-
-  test('debug builds tolerate root and pinning fails closed when required', () {
->>>>>>> b798013 (Update: remove root/jailbreak guards + demo credentials)
->>>>>>> 683e824 (fix: resolve merge conflict in flutter.yml (keep secrets env blocks))
     expect(
       securityVerdict(
         rooted: true,
